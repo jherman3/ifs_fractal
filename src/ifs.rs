@@ -1,6 +1,6 @@
 use vertex::Vertex;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Default)]
 pub struct Eqn {
     pub a: f32,
     pub b: f32,
@@ -46,5 +46,17 @@ impl IFS {
     pub fn update(&mut self) {
         let sum = self.eqns.iter().map(|l| l.1).sum();
         self.sum = sum;
+    }
+
+    pub fn generate(&self, n: usize) -> Vec<Vertex> {
+        let mut fract: Vec<Vertex> = Vec::new();
+        let mut last = Vertex {position: [0.0, 0.0], hue: fract.len() as f32 / n as f32};
+        fract.push(last);
+        for _ in 0..n {
+            last = self.choose().eval(last);
+            last.hue = fract.len() as f32 / n as f32;
+            fract.push(last);
+        }
+        fract
     }
 }

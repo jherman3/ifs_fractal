@@ -20,7 +20,7 @@ use std::time::Instant;
 extern crate imgui;
 extern crate imgui_glium_renderer;
 
-use imgui::{ImGui, Ui, ImGuiCond};
+use imgui::{ImGui, Ui, ImGuiCond, ImString};
 use imgui_glium_renderer::Renderer;
 
 
@@ -31,33 +31,59 @@ struct MouseState {
     wheel: f32,
 }
 
+macro_rules! ui_eqn {
+    ($ui:expr, $eqn:expr, $id:expr) => {
+        $ui.slider_float(&ImString::new(concat!($id, "a")), &mut $eqn.a, -100.0, 100.0)
+                        .display_format(im_str!("a: %.0f"))
+                        .build();
+        $ui.slider_float(&ImString::new(concat!($id, "b")), &mut $eqn.b, -100.0, 100.0)
+                    .display_format(im_str!("b: %.0f"))
+                    .build();
+        $ui.slider_float(&ImString::new(concat!($id, "c")), &mut $eqn.c, -100.0, 100.0)
+                    .display_format(im_str!("c: %.0f"))
+                    .build();
+        $ui.slider_float(&ImString::new(concat!($id, "d")), &mut $eqn.d, -100.0, 100.0)
+                    .display_format(im_str!("d: %.0f"))
+                    .build();
+        $ui.slider_float(&ImString::new(concat!($id, "e")), &mut $eqn.e, -100.0, 100.0)
+                    .display_format(im_str!("e: %.0f"))
+                    .build();
+        $ui.slider_float(&ImString::new(concat!($id, "f")), &mut $eqn.f, -100.0, 100.0)
+                    .display_format(im_str!("f: %.0f"))
+                    .build();
+    };
+}
+
 fn draw_gui<'a>(ui: &Ui<'a>, state: &mut State) {
-    ui.window(im_str!("Hello world"))
+    ui.window(im_str!("Equation Parameters"))
         .size((300.0, 500.0), ImGuiCond::FirstUseEver)
         .build(|| {
-            ui.text(im_str!("Hello world!"));
-            ui.text(im_str!("This...is...imgui-rs!"));
+            ui.text(im_str!("x = a * x + b * y + e"));
+            ui.text(im_str!("y = c * x + d * y + f"));
             ui.separator();
-            let mouse_pos = ui.imgui().mouse_pos();
-            ui.text(im_str!(
-                "Mouse Position: ({:.1},{:.1})",
-                mouse_pos.0,
-                mouse_pos.1
-            ));
+            ui.text(im_str!("Eqn 1"));
+            ui_eqn!(ui, state.e1, "e1");
+            ui.slider_float(im_str!("p1"), &mut state.p1, 1.0, 50.0)
+                        .display_format(im_str!("%.0f"))
+                        .build();
             ui.separator();
-            ui.slider_float(im_str!("p1"), &mut state.p1, 0.0, 50.0)
+            ui.text(im_str!("Eqn 2"));
+            ui_eqn!(ui, state.e2, "e2");
+            ui.slider_float(im_str!("p2"), &mut state.p2, 1.0, 50.0)
                         .display_format(im_str!("%.0f"))
                         .build();
-            ui.slider_float(im_str!("p2"), &mut state.p2, 0.0, 50.0)
+                        ui.separator();
+            ui.text(im_str!("Eqn 3"));
+            ui_eqn!(ui, state.e3, "e3");
+            ui.slider_float(im_str!("p3"), &mut state.p3, 1.0, 50.0)
                         .display_format(im_str!("%.0f"))
                         .build();
-            ui.slider_float(im_str!("p3"), &mut state.p3, 0.0, 50.0)
+            ui.separator();
+            ui.text(im_str!("Eqn 4"));
+            ui_eqn!(ui, state.e4, "e4");
+            ui.slider_float(im_str!("p4"), &mut state.p4, 1.0, 50.0)
                         .display_format(im_str!("%.0f"))
                         .build();
-            ui.slider_float(im_str!("p4"), &mut state.p4, 0.0, 50.0)
-                        .display_format(im_str!("%.0f"))
-                        .build();
-
         });
 }
 
@@ -85,10 +111,10 @@ fn main() {
 
     let mut sys = IFS::new(
         vec![
-            (Eqn {a: 0.0, b: 0.0, c: 0.0, d: 0.16, e: 0.0, f: 0.0} , 0.01),
-            (Eqn {a: 0.2, b: -0.26, c: 0.23, d: 0.22, e: 0.0, f: 1.6} , 0.07),
-            (Eqn {a: -0.15, b: 0.28, c: 0.26, d: 0.24, e: 0.0, f: 0.44} , 0.07),
-            (Eqn {a: 0.85, b: 0.04, c: -0.04, d: 0.85, e: 0.0, f: 1.6} , 0.85)
+            (Eqn {a: 85.0, b: 4.0, c: -4.0, d: 85.0, e: 0.0, f: 160.0} , 85.0),
+            (Eqn {a: 0.0, b: 0.0, c: 0.0, d: 16.0, e: 0.0, f: 0.0} , 1.0),
+            (Eqn {a: 20.0, b: -26.0, c: 23.0, d: 22.0, e: 0.0, f: 160.0} , 7.0),
+            (Eqn {a: -15.0, b: 28.0, c: 26.0, d: 24.0, e: 0.0, f: 44.0} , 7.0),
         ]
     );
 
@@ -139,10 +165,7 @@ fn main() {
     let program = glium::Program::from_source(&display, vertex_shader_src, fragment_shader_src, None).unwrap();
 
     let mut closed = false;
-    let mut fract: Vec<Vertex> = Vec::new();
-    let mut last = Vertex {position: [0.0, 0.0], hue: fract.len() as f32 / NUM_POINTS as f32};
-    fract.push(last);
-
+    let mut fract: Vec<Vertex> = sys.generate(NUM_POINTS);
     let mut scale: f32 = 1.0;
     let mut xpos: f32 = 0.0;
     let mut ypos: f32 = 0.0;
@@ -150,16 +173,19 @@ fn main() {
     let mut last_frame = Instant::now();
     let mut mouse_state = MouseState::default();
     let mut state = State::default();
+    state.e1 = sys.eqns[0].0;
+    state.e2 = sys.eqns[1].0;
+    state.e3 = sys.eqns[2].0;
+    state.e4 = sys.eqns[3].0;
+    state.p1 = sys.eqns[0].1;
+    state.p2 = sys.eqns[1].1;
+    state.p3 = sys.eqns[2].1;
+    state.p4 = sys.eqns[3].1;
+
+
     let mut last_state = state;
 
     while !closed {
-        if fract.len() < NUM_POINTS {
-            for _ in 0..(NUM_POINTS) {
-                last = sys.choose().eval(last);
-                last.hue = fract.len() as f32 / NUM_POINTS as f32;
-                fract.push(last);
-            }
-        }
         let vertex_buffer = glium::VertexBuffer::new(&display, &fract).unwrap();
 
         let transform = [[scale, 0.0, -xpos],
@@ -224,12 +250,8 @@ fn main() {
         target.finish().unwrap();
 
         if last_state != state {
-            fract.clear();
-            sys.eqns[0].1 = state.p1;
-            sys.eqns[1].1 = state.p2;
-            sys.eqns[2].1 = state.p3;
-            sys.eqns[3].1 = state.p4;
-            sys.update();
+            let sys = state.get_sys();
+            fract = sys.generate(NUM_POINTS);
         }
         last_state = state;
     }
