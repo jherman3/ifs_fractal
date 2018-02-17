@@ -20,12 +20,19 @@ impl Eqn {
 
 #[derive(Clone, Debug)]
 pub struct IFS {
-    pub eqns: Vec<(Eqn, f32)>
+    pub eqns: Vec<(Eqn, f32)>,
+    sum: f32
 }
 
 impl IFS {
+    pub fn new(e: Vec<(Eqn, f32)>) -> IFS {
+        let mut l = IFS { eqns: e, sum: 0.0 };
+        l.update();
+        l
+    }
+
     pub fn choose(&self) -> Eqn {
-        let p = ::rand::random::<f32>();
+        let p = ::rand::random::<f32>() * self.sum;
         let mut sum = 0.0;
         for &(eq, prob) in &self.eqns {
             if p - sum < prob {
@@ -34,5 +41,10 @@ impl IFS {
             sum += prob;
         }
         unreachable!();
+    }
+
+    pub fn update(&mut self) {
+        let sum = self.eqns.iter().map(|l| l.1).sum();
+        self.sum = sum;
     }
 }
