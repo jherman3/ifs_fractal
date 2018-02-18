@@ -31,27 +31,28 @@ struct MouseState {
     wheel: f32,
 }
 
-macro_rules! ui_eqn {
-    ($ui:expr, $eqn:expr, $id:expr) => {
-        $ui.slider_float(&ImString::new(concat!($id, "a")), &mut $eqn.a, -100.0, 100.0)
-                        .display_format(im_str!("a: %.0f"))
+fn ui_eqn<'a>(ui: &Ui<'a>, eqn: &mut Eqn, id: usize) {
+    ui.slider_float(im_str!("{}a", id), &mut eqn.a, -100.0, 100.0)
+                    .display_format(im_str!("a: %.0f"))
+                    .build();
+    ui.slider_float(im_str!("{}b", id), &mut eqn.b, -100.0, 100.0)
+                .display_format(im_str!("b: %.0f"))
+                .build();
+    ui.slider_float(im_str!("{}c", id), &mut eqn.c, -100.0, 100.0)
+                .display_format(im_str!("c: %.0f"))
+                .build();
+    ui.slider_float(im_str!("{}d", id), &mut eqn.d, -100.0, 100.0)
+                .display_format(im_str!("d: %.0f"))
+                .build();
+    ui.slider_float(im_str!("{}e", id), &mut eqn.e, -100.0, 100.0)
+                .display_format(im_str!("e: %.0f"))
+                .build();
+    ui.slider_float(im_str!("{}f", id), &mut eqn.f, -100.0, 100.0)
+                .display_format(im_str!("f: %.0f"))
+                .build();
+    ui.slider_float(im_str!("{}p", id), &mut eqn.p, 1.0, 50.0)
+                        .display_format(im_str!("%.0f"))
                         .build();
-        $ui.slider_float(&ImString::new(concat!($id, "b")), &mut $eqn.b, -100.0, 100.0)
-                    .display_format(im_str!("b: %.0f"))
-                    .build();
-        $ui.slider_float(&ImString::new(concat!($id, "c")), &mut $eqn.c, -100.0, 100.0)
-                    .display_format(im_str!("c: %.0f"))
-                    .build();
-        $ui.slider_float(&ImString::new(concat!($id, "d")), &mut $eqn.d, -100.0, 100.0)
-                    .display_format(im_str!("d: %.0f"))
-                    .build();
-        $ui.slider_float(&ImString::new(concat!($id, "e")), &mut $eqn.e, -100.0, 100.0)
-                    .display_format(im_str!("e: %.0f"))
-                    .build();
-        $ui.slider_float(&ImString::new(concat!($id, "f")), &mut $eqn.f, -100.0, 100.0)
-                    .display_format(im_str!("f: %.0f"))
-                    .build();
-    };
 }
 
 fn draw_gui<'a>(ui: &Ui<'a>, state: &mut State) {
@@ -61,29 +62,11 @@ fn draw_gui<'a>(ui: &Ui<'a>, state: &mut State) {
             ui.text(im_str!("x = a * x + b * y + e"));
             ui.text(im_str!("y = c * x + d * y + f"));
             ui.separator();
-            ui.text(im_str!("Eqn 1"));
-            ui_eqn!(ui, state.e1, "e1");
-            ui.slider_float(im_str!("p1"), &mut state.p1, 1.0, 50.0)
-                        .display_format(im_str!("%.0f"))
-                        .build();
-            ui.separator();
-            ui.text(im_str!("Eqn 2"));
-            ui_eqn!(ui, state.e2, "e2");
-            ui.slider_float(im_str!("p2"), &mut state.p2, 1.0, 50.0)
-                        .display_format(im_str!("%.0f"))
-                        .build();
-                        ui.separator();
-            ui.text(im_str!("Eqn 3"));
-            ui_eqn!(ui, state.e3, "e3");
-            ui.slider_float(im_str!("p3"), &mut state.p3, 1.0, 50.0)
-                        .display_format(im_str!("%.0f"))
-                        .build();
-            ui.separator();
-            ui.text(im_str!("Eqn 4"));
-            ui_eqn!(ui, state.e4, "e4");
-            ui.slider_float(im_str!("p4"), &mut state.p4, 1.0, 50.0)
-                        .display_format(im_str!("%.0f"))
-                        .build();
+            for (i, mut eq) in state.0.eqns.iter_mut().enumerate() {
+                if ui.collapsing_header(im_str!("Eqn {}", i)).build() {
+                    ui_eqn(ui, &mut eq, i);
+                }
+            }
         });
 }
 
@@ -108,15 +91,6 @@ fn update_mouse(imgui: &mut ImGui, mouse_state: &mut MouseState) {
 
 fn main() {
     const NUM_POINTS: usize = 1_000_000;
-
-    let mut sys = IFS::new(
-        vec![
-            (Eqn {a: 85.0, b: 4.0, c: -4.0, d: 85.0, e: 0.0, f: 160.0} , 85.0),
-            (Eqn {a: 0.0, b: 0.0, c: 0.0, d: 16.0, e: 0.0, f: 0.0} , 1.0),
-            (Eqn {a: 20.0, b: -26.0, c: 23.0, d: 22.0, e: 0.0, f: 160.0} , 7.0),
-            (Eqn {a: -15.0, b: 28.0, c: 26.0, d: 24.0, e: 0.0, f: 44.0} , 7.0),
-        ]
-    );
 
     use glium::{glutin, Surface};
 
@@ -165,7 +139,6 @@ fn main() {
     let program = glium::Program::from_source(&display, vertex_shader_src, fragment_shader_src, None).unwrap();
 
     let mut closed = false;
-    let mut fract: Vec<Vertex> = sys.generate(NUM_POINTS);
     let mut scale: f32 = 1.0;
     let mut xpos: f32 = 0.0;
     let mut ypos: f32 = 0.0;
@@ -173,25 +146,8 @@ fn main() {
     let mut last_frame = Instant::now();
     let mut mouse_state = MouseState::default();
     let mut state = State::default();
-    state.e1 = sys.eqns[0].0;
-    state.e2 = sys.eqns[1].0;
-    state.e3 = sys.eqns[2].0;
-    state.e4 = sys.eqns[3].0;
-    state.p1 = sys.eqns[0].1;
-    state.p2 = sys.eqns[1].1;
-    state.p3 = sys.eqns[2].1;
-    state.p4 = sys.eqns[3].1;
-
-
-    let mut last_state = state;
 
     while !closed {
-        let vertex_buffer = glium::VertexBuffer::new(&display, &fract).unwrap();
-
-        let transform = [[scale, 0.0, -xpos],
-                         [0.0, scale, -ypos],
-                         [0.0, 0.0, scale]] ;
-
         events_loop.poll_events(|event| {
             use glium::glutin::WindowEvent::*;
             use glium::glutin::ElementState::Pressed;
@@ -241,6 +197,15 @@ fn main() {
         let ui = imgui.frame(size_points, size_pixels, delta_s);
 
         let mut target = display.draw();
+
+        let sys = state.get_sys();
+        let fract = sys.generate(NUM_POINTS);
+        let vertex_buffer = glium::VertexBuffer::new(&display, &fract).unwrap();
+
+        let transform = [[scale, 0.0, -xpos],
+                         [0.0, scale, -ypos],
+                         [0.0, 0.0, scale]] ;
+
         target.clear_color(0.0, 0.0, 0.0, 1.0);
         target.draw(&vertex_buffer, &indices, &program,
                     &uniform! { transform: transform },
@@ -248,11 +213,5 @@ fn main() {
         draw_gui(&ui, &mut state);
         renderer.render(&mut target, ui).expect("Rendering failed");
         target.finish().unwrap();
-
-        if last_state != state {
-            let sys = state.get_sys();
-            fract = sys.generate(NUM_POINTS);
-        }
-        last_state = state;
     }
 }

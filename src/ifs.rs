@@ -7,7 +7,8 @@ pub struct Eqn {
     pub c: f32,
     pub d: f32,
     pub e: f32,
-    pub f: f32
+    pub f: f32,
+    pub p: f32
 }
 
 impl Eqn {
@@ -20,12 +21,12 @@ impl Eqn {
 
 #[derive(Clone, Debug)]
 pub struct IFS {
-    pub eqns: Vec<(Eqn, f32)>,
+    pub eqns: Vec<Eqn>,
     sum: f32
 }
 
 impl IFS {
-    pub fn new(e: Vec<(Eqn, f32)>) -> IFS {
+    pub fn new(e: Vec<Eqn>) -> IFS {
         let mut l = IFS { eqns: e, sum: 0.0 };
         l.update();
         l
@@ -34,17 +35,17 @@ impl IFS {
     pub fn choose(&self) -> Eqn {
         let p = ::rand::random::<f32>() * self.sum;
         let mut sum = 0.0;
-        for &(eq, prob) in &self.eqns {
-            if p - sum < prob {
+        for &eq in &self.eqns {
+            if p - sum < eq.p {
                 return eq;
             }
-            sum += prob;
+            sum += eq.p;
         }
         unreachable!();
     }
 
     pub fn update(&mut self) {
-        let sum = self.eqns.iter().map(|l| l.1).sum();
+        let sum = self.eqns.iter().map(|l| l.p).sum();
         self.sum = sum;
     }
 
