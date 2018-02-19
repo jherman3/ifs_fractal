@@ -1,5 +1,9 @@
 use vertex::Vertex;
 
+use rand::Rng;
+
+/// Represents a single equation in an IFS
+/// Contains equations parameters and the probability value
 #[derive(Copy, Clone, Debug, PartialEq, Default)]
 pub struct Eqn {
     pub a: f32,
@@ -19,6 +23,9 @@ impl Eqn {
     }
 }
 
+/// Represents a set of equations with probabilities. The sum value is set to
+/// the sum of the probability values for each equation so that the individual
+/// Eqn's probabilities need not sum to 1.
 #[derive(Clone, Debug)]
 pub struct IFS {
     pub eqns: Vec<Eqn>,
@@ -28,12 +35,12 @@ pub struct IFS {
 impl IFS {
     pub fn new(e: Vec<Eqn>) -> IFS {
         let mut l = IFS { eqns: e, sum: 0.0 };
-        l.update();
+        l.update_sum();
         l
     }
 
-    pub fn choose(&self) -> Eqn {
-        let p = ::rand::random::<f32>() * self.sum;
+    fn choose<R: Rng>(&self, rng: &mut R) -> Eqn {
+        let p = rng.gen::<f32>() * self.sum;
         let mut sum = 0.0;
         for &eq in &self.eqns {
             if p - sum < eq.p {
@@ -44,17 +51,19 @@ impl IFS {
         unreachable!();
     }
 
-    pub fn update(&mut self) {
+    fn update_sum(&mut self) {
         let sum = self.eqns.iter().map(|l| l.p).sum();
         self.sum = sum;
     }
 
-    pub fn generate(&self, n: usize) -> Vec<Vertex> {
+    pub fn generate(&mut self, n: usize) -> Vec<Vertex> {
+        self.update_sum();
+        let mut rng = ::rand::weak_rng();
         let mut fract: Vec<Vertex> = Vec::new();
         let mut last = Vertex {position: [0.0, 0.0], hue: fract.len() as f32 / n as f32};
         fract.push(last);
         for _ in 0..n {
-            last = self.choose().eval(last);
+            last = self.choose(&mut rng).eval(last);
             last.hue = fract.len() as f32 / n as f32;
             fract.push(last);
         }
