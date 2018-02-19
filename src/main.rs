@@ -1,26 +1,20 @@
+extern crate rand;
 #[macro_use]
 extern crate glium;
-
-extern crate rand;
+#[macro_use]
+extern crate imgui;
+extern crate imgui_glium_renderer;
 
 mod ifs;
 mod vertex;
 mod gui;
 
-use gui::{MouseState, State, draw_gui};
-
-use std::time::Instant;
-
-#[macro_use]
-extern crate imgui;
-extern crate imgui_glium_renderer;
-
-use imgui::ImGui;
-use imgui_glium_renderer::Renderer;
-
-
 fn main() {
+    use gui::{MouseState, State, draw_gui};
     use glium::{glutin, Surface};
+    use imgui::ImGui;
+    use imgui_glium_renderer::Renderer;
+    use std::time::Instant;
 
     let mut events_loop = glutin::EventsLoop::new();
     let window = glutin::WindowBuilder::new();
