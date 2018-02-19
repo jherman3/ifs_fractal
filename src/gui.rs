@@ -74,10 +74,21 @@ pub fn draw_gui<'a>(ui: &Ui<'a>, state: &mut State) {
                     .display_format(im_str!("a: %.0f"))
                     .build();
             ui.separator();
+            if ui.small_button(im_str!("Add Equation")) {
+                state.sys.eqns.push(Eqn::default());
+            }
+            let mut del = None;
             for (i, mut eq) in state.sys.eqns.iter_mut().enumerate() {
                 if ui.collapsing_header(im_str!("Eqn {}", i)).build() {
                     ui_eqn(ui, &mut eq, i);
+                    if ui.small_button(im_str!("Delete##eqn{}", i)) {
+                        del = Some(i);
+                        break;
+                    }
                 }
+            }
+            if let Some(i) = del {
+                state.sys.eqns.remove(i);
             }
         });
 }
