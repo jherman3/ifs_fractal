@@ -1,6 +1,6 @@
 [package]
-name = "fractal"
-version = "0.1.0"
+name = "ifs_fractal"
+version = "0.0.1"
 authors = ["Jake Herman <jakeherman3@gmail.com>"]
 
 [dependencies]
