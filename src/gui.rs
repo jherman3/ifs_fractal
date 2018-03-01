@@ -9,7 +9,8 @@ use imgui::{Ui, ImGuiCond, ImGui};
 #[derive(Debug, Clone)]
 pub struct State {
     pub sys: IFS,
-    pub num_points: f32
+    pub num_points: f32,
+    pub fps: f32
 }
 
 impl Default for State {
@@ -21,7 +22,8 @@ impl Default for State {
                 Eqn {a: 20.0, b: -26.0, c: 23.0, d: 22.0, e: 0.0, f: 160.0, p: 7.0 },
                 Eqn {a: -15.0, b: 28.0, c: 26.0, d: 24.0, e: 0.0, f: 44.0, p: 7.0 },
             ]),
-            num_points: 1_000_000.0
+            num_points: 1_000_000.0,
+            fps: 0.0
         }
     }
 }
@@ -73,6 +75,7 @@ pub fn draw_gui<'a>(ui: &Ui<'a>, state: &mut State) {
                     .power(10.0)
                     .display_format(im_str!("a: %.0f"))
                     .build();
+            ui.text(im_str!("FPS: {:.1}", state.fps));
             ui.separator();
             if ui.small_button(im_str!("Add Equation")) {
                 state.sys.eqns.push(Eqn::default());

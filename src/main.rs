@@ -15,6 +15,7 @@ fn main() {
     use imgui::ImGui;
     use imgui_glium_renderer::Renderer;
     use std::time::Instant;
+    use std::collections::VecDeque;
 
     let mut events_loop = glutin::EventsLoop::new();
     let window = glutin::WindowBuilder::new();
@@ -68,6 +69,7 @@ fn main() {
     let mut last_frame = Instant::now();
     let mut mouse_state = MouseState::default();
     let mut state = State::default();
+    let mut fpsbuf = VecDeque::new();
 
     while !closed {
         events_loop.poll_events(|event| {
@@ -120,6 +122,11 @@ fn main() {
         let delta = now - last_frame;
         let delta_s = delta.as_secs() as f32 + delta.subsec_nanos() as f32 / 1_000_000_000.0;
         last_frame = now;
+        fpsbuf.push_back(1.0 / delta_s);
+        if fpsbuf.len() > 100 {
+            fpsbuf.pop_front();
+        }
+        state.fps = fpsbuf.iter().sum::<f32>() / fpsbuf.len() as f32;
 
         mouse_state.update_imgui(&mut imgui);
 
