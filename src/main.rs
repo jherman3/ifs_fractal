@@ -146,8 +146,12 @@ fn main() {
                     &Default::default()).expect("Fractal draw failed");
         // Draw GUI
         let gl_window = display.gl_window();
-        let size_points = gl_window.get_inner_size_points().unwrap();
-        let size_pixels = gl_window.get_inner_size_pixels().unwrap();
+        let size_pixels = gl_window.get_inner_size().unwrap();
+        let hidpi = gl_window.hidpi_factor();
+        let size_points = (
+            (size_pixels.0 as f32 / hidpi) as u32,
+            (size_pixels.1 as f32 / hidpi) as u32,
+        );
         let ui = imgui.frame(size_points, size_pixels, delta_s);
         draw_gui(&ui, &mut state);
         renderer.render(&mut target, ui).expect("Rendering failed");
