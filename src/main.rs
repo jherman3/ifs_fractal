@@ -83,12 +83,12 @@ fn main() {
             use glium::glutin::ElementState::Pressed;
             use glium::glutin::WindowEvent::*;
             use glium::glutin::{MouseButton, MouseScrollDelta, TouchPhase};
-            match event {
-                glutin::Event::WindowEvent { event, .. } => match event {
+            if let glutin::Event::WindowEvent { event, .. } = event {
+                match event {
                     CloseRequested => closed = true,
                     KeyboardInput {
                         input,
-                        device_id: _,
+                        ..
                     } => {
                         if let Some(v) = input.virtual_keycode {
                             match v {
@@ -124,8 +124,7 @@ fn main() {
                         ..
                     } => mouse_state.wheel = pos.y as f32,
                     _ => (),
-                },
-                _ => (),
+                }
             }
         });
 
