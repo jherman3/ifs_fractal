@@ -60,21 +60,18 @@ impl IFS {
         self.sum = sum;
     }
 
-    pub fn generate(&mut self, n: usize) -> Vec<Vertex> {
+    pub fn generate(&mut self, v: &mut Vec<Vertex>) {
         use rand::SeedableRng;
         self.update_sum();
         let mut rng = ::rand::rngs::SmallRng::from_seed([0; 16]);
-        let mut fract: Vec<Vertex> = Vec::new();
-        let mut last = Vertex {
+
+        v[0] = Vertex {
             position: [0.0, 0.0],
-            hue: fract.len() as f32 / n as f32,
+            hue: 0.0,
         };
-        fract.push(last);
-        for _ in 0..n {
-            last = self.choose(&mut rng).eval(last);
-            last.hue = fract.len() as f32 / n as f32;
-            fract.push(last);
+        for i in 1..v.len() {
+            v[i] = self.choose(&mut rng).eval(v[i-1]);
+            v[i].hue = i as f32 / v.len() as f32;
         }
-        fract
     }
 }

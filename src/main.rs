@@ -16,6 +16,7 @@ fn main() {
     use imgui_glium_renderer::Renderer;
     use std::collections::VecDeque;
     use std::time::Instant;
+    use vertex::Vertex;
 
     let mut events_loop = glutin::EventsLoop::new();
     let window = glutin::WindowBuilder::new();
@@ -72,7 +73,9 @@ fn main() {
     let mut last_frame = Instant::now();
     let mut mouse_state = MouseState::default();
     let mut state = State::default();
+    let mut num_points = state.num_points as usize;
     let mut fpsbuf = VecDeque::new();
+    let mut fract: Vec<Vertex> = vec![Vertex::default(); num_points];
 
     while !closed {
         events_loop.poll_events(|event| {
@@ -146,8 +149,12 @@ fn main() {
         mouse_state.update_imgui(&mut imgui);
 
         // Generate fractal
+        if num_points != state.num_points as usize {
+            num_points = state.num_points as usize;
+            fract = vec![Vertex::default(); num_points];
+        }
         let mut sys = state.get_sys();
-        let fract = sys.generate(state.num_points as usize);
+        sys.generate(&mut fract);
         let vertex_buffer = glium::VertexBuffer::new(&display, &fract).expect("vertex buffer");
         // Translate/scale matrix
         let transform = [
