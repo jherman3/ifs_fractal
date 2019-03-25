@@ -1,6 +1,6 @@
 use ifs::{Eqn, IFS};
 
-use imgui::{Ui, ImGuiCond, ImGui};
+use imgui::{ImGui, ImGuiCond, Ui};
 
 /// State controllable by GUI
 ///
@@ -10,20 +10,52 @@ use imgui::{Ui, ImGuiCond, ImGui};
 pub struct State {
     pub sys: IFS,
     pub num_points: f32,
-    pub fps: f32
+    pub fps: f32,
 }
 
 impl Default for State {
     fn default() -> State {
         State {
             sys: IFS::new(vec![
-                Eqn {a: 85.0, b: 4.0, c: -4.0, d: 85.0, e: 0.0, f: 160.0, p: 85.0 },
-                Eqn {a: 0.0, b: 0.0, c: 0.0, d: 16.0, e: 0.0, f: 0.0, p: 1.0 },
-                Eqn {a: 20.0, b: -26.0, c: 23.0, d: 22.0, e: 0.0, f: 160.0, p: 7.0 },
-                Eqn {a: -15.0, b: 28.0, c: 26.0, d: 24.0, e: 0.0, f: 44.0, p: 7.0 },
+                Eqn {
+                    a: 85.0,
+                    b: 4.0,
+                    c: -4.0,
+                    d: 85.0,
+                    e: 0.0,
+                    f: 160.0,
+                    p: 85.0,
+                },
+                Eqn {
+                    a: 0.0,
+                    b: 0.0,
+                    c: 0.0,
+                    d: 16.0,
+                    e: 0.0,
+                    f: 0.0,
+                    p: 1.0,
+                },
+                Eqn {
+                    a: 20.0,
+                    b: -26.0,
+                    c: 23.0,
+                    d: 22.0,
+                    e: 0.0,
+                    f: 160.0,
+                    p: 7.0,
+                },
+                Eqn {
+                    a: -15.0,
+                    b: 28.0,
+                    c: 26.0,
+                    d: 24.0,
+                    e: 0.0,
+                    f: 44.0,
+                    p: 7.0,
+                },
             ]),
             num_points: 1_000_000.0,
-            fps: 0.0
+            fps: 0.0,
         }
     }
 }
@@ -35,33 +67,40 @@ impl State {
 }
 
 fn norm(e: Eqn) -> Eqn {
-    Eqn { a: e.a / 100.0, b: e.b / 100.0, c: e.c / 100.0,
-          d: e.d / 100.0, e: e.e / 100.0, f: e.f / 100.0, .. e}
+    Eqn {
+        a: e.a / 100.0,
+        b: e.b / 100.0,
+        c: e.c / 100.0,
+        d: e.d / 100.0,
+        e: e.e / 100.0,
+        f: e.f / 100.0,
+        ..e
+    }
 }
 
 /// Helper to draw a Eqn's sliders
 fn ui_eqn<'a>(ui: &Ui<'a>, eqn: &mut Eqn, id: usize) {
     ui.slider_float(im_str!("{}a", id), &mut eqn.a, -100.0, 100.0)
-                    .display_format(im_str!("a: %.0f"))
-                    .build();
+        .display_format(im_str!("a: %.0f"))
+        .build();
     ui.slider_float(im_str!("{}b", id), &mut eqn.b, -100.0, 100.0)
-                .display_format(im_str!("b: %.0f"))
-                .build();
+        .display_format(im_str!("b: %.0f"))
+        .build();
     ui.slider_float(im_str!("{}c", id), &mut eqn.c, -100.0, 100.0)
-                .display_format(im_str!("c: %.0f"))
-                .build();
+        .display_format(im_str!("c: %.0f"))
+        .build();
     ui.slider_float(im_str!("{}d", id), &mut eqn.d, -100.0, 100.0)
-                .display_format(im_str!("d: %.0f"))
-                .build();
+        .display_format(im_str!("d: %.0f"))
+        .build();
     ui.slider_float(im_str!("{}e", id), &mut eqn.e, -100.0, 100.0)
-                .display_format(im_str!("e: %.0f"))
-                .build();
+        .display_format(im_str!("e: %.0f"))
+        .build();
     ui.slider_float(im_str!("{}f", id), &mut eqn.f, -100.0, 100.0)
-                .display_format(im_str!("f: %.0f"))
-                .build();
+        .display_format(im_str!("f: %.0f"))
+        .build();
     ui.slider_float(im_str!("{}p", id), &mut eqn.p, 1.0, 100.0)
-                        .display_format(im_str!("%.0f"))
-                        .build();
+        .display_format(im_str!("%.0f"))
+        .build();
 }
 
 /// Main GUI draw function
@@ -71,10 +110,15 @@ pub fn draw_gui<'a>(ui: &Ui<'a>, state: &mut State) {
         .build(|| {
             ui.text(im_str!("x = a * x + b * y + e"));
             ui.text(im_str!("y = c * x + d * y + f"));
-            ui.slider_float(im_str!("NumPoints"), &mut state.num_points, 0.0, 10_000_000.0)
-                    .power(10.0)
-                    .display_format(im_str!("a: %.0f"))
-                    .build();
+            ui.slider_float(
+                im_str!("NumPoints"),
+                &mut state.num_points,
+                0.0,
+                10_000_000.0,
+            )
+            .power(10.0)
+            .display_format(im_str!("a: %.0f"))
+            .build();
             ui.text(im_str!("FPS: {:.1}", state.fps));
             ui.separator();
             if ui.small_button(im_str!("Add Equation")) {
@@ -97,9 +141,10 @@ pub fn draw_gui<'a>(ui: &Ui<'a>, state: &mut State) {
 }
 
 /// Keeps track of mouse position for ImGui
+/// Coordinates are in LogicalPosition so we don't have to deal with hidpi
 #[derive(Copy, Clone, PartialEq, Debug, Default)]
 pub struct MouseState {
-    pub pos: (i32, i32),
+    pub pos: (f32, f32),
     pub pressed: (bool, bool, bool),
     pub wheel: f32,
 }
@@ -107,21 +152,9 @@ pub struct MouseState {
 impl MouseState {
     /// Sets ImGui's mouse state to match the MouseState struct
     pub fn update_imgui(&mut self, imgui: &mut ImGui) {
-        let scale = imgui.display_framebuffer_scale();
-        imgui.set_mouse_pos(
-            self.pos.0 as f32 / scale.0,
-            self.pos.1 as f32 / scale.1,
-        );
-        imgui.set_mouse_down(
-            &[
-                self.pressed.0,
-                self.pressed.1,
-                self.pressed.2,
-                false,
-                false,
-            ],
-        );
-        imgui.set_mouse_wheel(self.wheel / scale.1);
+        imgui.set_mouse_pos(self.pos.0, self.pos.1);
+        imgui.set_mouse_down([self.pressed.0, self.pressed.1, self.pressed.2, false, false]);
+        imgui.set_mouse_wheel(self.wheel);
         self.wheel = 0.0;
     }
 }

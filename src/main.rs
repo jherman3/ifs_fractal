@@ -1,26 +1,27 @@
-extern crate rand;
 #[macro_use]
 extern crate glium;
 #[macro_use]
 extern crate imgui;
 extern crate imgui_glium_renderer;
+extern crate rand;
 
+mod gui;
 mod ifs;
 mod vertex;
-mod gui;
 
 fn main() {
-    use gui::{MouseState, State, draw_gui};
     use glium::{glutin, Surface};
+    use gui::{draw_gui, MouseState, State};
     use imgui::ImGui;
     use imgui_glium_renderer::Renderer;
-    use std::time::Instant;
     use std::collections::VecDeque;
+    use std::time::Instant;
 
     let mut events_loop = glutin::EventsLoop::new();
     let window = glutin::WindowBuilder::new();
     let context = glutin::ContextBuilder::new();
-    let display = glium::Display::new(window, context, &events_loop).expect("Failed to initialize display");
+    let display =
+        glium::Display::new(window, context, &events_loop).expect("Failed to initialize display");
 
     let mut imgui = ImGui::init();
     imgui.set_ini_filename(None);
@@ -59,7 +60,9 @@ fn main() {
         }
     "#;
 
-    let program = glium::Program::from_source(&display, vertex_shader_src, fragment_shader_src, None).expect("Failed to build program");
+    let program =
+        glium::Program::from_source(&display, vertex_shader_src, fragment_shader_src, None)
+            .expect("Failed to build program");
 
     let mut closed = false;
     let mut scale: f32 = 1.0;
@@ -73,13 +76,17 @@ fn main() {
 
     while !closed {
         events_loop.poll_events(|event| {
-            use glium::glutin::WindowEvent::*;
+            use glium::glutin::dpi::LogicalPosition;
             use glium::glutin::ElementState::Pressed;
+            use glium::glutin::WindowEvent::*;
             use glium::glutin::{MouseButton, MouseScrollDelta, TouchPhase};
             match event {
                 glutin::Event::WindowEvent { event, .. } => match event {
-                    Closed => closed = true,
-                    KeyboardInput { input, device_id: _ } => {
+                    CloseRequested => closed = true,
+                    KeyboardInput {
+                        input,
+                        device_id: _,
+                    } => {
                         if let Some(v) = input.virtual_keycode {
                             match v {
                                 // Divide by scale so moving feels uniform
@@ -89,31 +96,32 @@ fn main() {
                                 glutin::VirtualKeyCode::Left => xpos -= 0.05 / scale,
                                 glutin::VirtualKeyCode::Q => scale *= 1.10,
                                 glutin::VirtualKeyCode::Z => scale *= 0.9,
-                                _ => ()
+                                _ => (),
                             }
                         }
-                    },
-                    CursorMoved { position: (x, y), .. } => mouse_state.pos = (x as i32, y as i32),
-                    MouseInput { state, button, .. } => {
-                        match button {
-                            MouseButton::Left => mouse_state.pressed.0 = state == Pressed,
-                            MouseButton::Right => mouse_state.pressed.1 = state == Pressed,
-                            MouseButton::Middle => mouse_state.pressed.2 = state == Pressed,
-                            _ => {}
-                        }
+                    }
+                    CursorMoved {
+                        position: LogicalPosition { x, y },
+                        ..
+                    } => mouse_state.pos = (x as f32, y as f32),
+                    MouseInput { state, button, .. } => match button {
+                        MouseButton::Left => mouse_state.pressed.0 = state == Pressed,
+                        MouseButton::Right => mouse_state.pressed.1 = state == Pressed,
+                        MouseButton::Middle => mouse_state.pressed.2 = state == Pressed,
+                        _ => {}
                     },
                     MouseWheel {
                         delta: MouseScrollDelta::LineDelta(_, y),
                         phase: TouchPhase::Moved,
                         ..
-                    } |
+                    } => mouse_state.wheel = y,
                     MouseWheel {
-                        delta: MouseScrollDelta::PixelDelta(_, y),
+                        delta: MouseScrollDelta::PixelDelta(pos),
                         phase: TouchPhase::Moved,
                         ..
-                    } => mouse_state.wheel = y,
-                    _ => ()
-                }
+                    } => mouse_state.wheel = pos.y as f32,
+                    _ => (),
+                },
                 _ => (),
             }
         });
@@ -122,6 +130,13 @@ fn main() {
         let delta = now - last_frame;
         let delta_s = delta.as_secs() as f32 + delta.subsec_nanos() as f32 / 1_000_000_000.0;
         last_frame = now;
+
+        if delta_s < 1.0 / 60.0 {
+            std::thread::sleep(std::time::Duration::from_millis(
+                (1000.0 * (1.0 / 60.0)) as u64,
+            ));
+        }
+
         fpsbuf.push_back(1.0 / delta_s);
         if fpsbuf.len() > 100 {
             fpsbuf.pop_front();
@@ -135,24 +150,30 @@ fn main() {
         let fract = sys.generate(state.num_points as usize);
         let vertex_buffer = glium::VertexBuffer::new(&display, &fract).expect("vertex buffer");
         // Translate/scale matrix
-        let transform = [[scale, 0.0, -xpos * scale],
-                         [0.0, scale, -ypos * scale],
-                         [0.0, 0.0, scale]];
+        let transform = [
+            [scale, 0.0, -xpos * scale],
+            [0.0, scale, -ypos * scale],
+            [0.0, 0.0, scale],
+        ];
 
         let mut target = display.draw();
         target.clear_color(0.0, 0.0, 0.0, 1.0);
-        target.draw(&vertex_buffer, &indices, &program,
-                    &uniform! { transform: transform },
-                    &Default::default()).expect("Fractal draw failed");
+        target
+            .draw(
+                &vertex_buffer,
+                &indices,
+                &program,
+                &uniform! { transform: transform },
+                &Default::default(),
+            )
+            .expect("Fractal draw failed");
+
         // Draw GUI
         let gl_window = display.gl_window();
         let size_pixels = gl_window.get_inner_size().unwrap();
-        let hidpi = gl_window.hidpi_factor();
-        let size_points = (
-            (size_pixels.0 as f32 / hidpi) as u32,
-            (size_pixels.1 as f32 / hidpi) as u32,
-        );
-        let ui = imgui.frame(size_points, size_pixels, delta_s);
+        let hidpi = gl_window.get_hidpi_factor();
+        let frame_size = imgui::FrameSize::new(size_pixels.width, size_pixels.height, hidpi);
+        let ui = imgui.frame(frame_size, delta_s);
         draw_gui(&ui, &mut state);
         renderer.render(&mut target, ui).expect("Rendering failed");
 

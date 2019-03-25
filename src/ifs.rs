@@ -12,14 +12,18 @@ pub struct Eqn {
     pub d: f32,
     pub e: f32,
     pub f: f32,
-    pub p: f32
+    pub p: f32,
 }
 
 impl Eqn {
     pub fn eval(&self, v: Vertex) -> Vertex {
-        Vertex { position: [self.a * v.position[0] + self.b * v.position[1] + self.e,
-                            self.c * v.position[0] + self.d * v.position[1] + self.f],
-                hue: v.hue }
+        Vertex {
+            position: [
+                self.a * v.position[0] + self.b * v.position[1] + self.e,
+                self.c * v.position[0] + self.d * v.position[1] + self.f,
+            ],
+            hue: v.hue,
+        }
     }
 }
 
@@ -29,7 +33,7 @@ impl Eqn {
 #[derive(Clone, Debug)]
 pub struct IFS {
     pub eqns: Vec<Eqn>,
-    sum: f32
+    sum: f32,
 }
 
 impl IFS {
@@ -57,10 +61,14 @@ impl IFS {
     }
 
     pub fn generate(&mut self, n: usize) -> Vec<Vertex> {
+        use rand::SeedableRng;
         self.update_sum();
-        let mut rng = ::rand::weak_rng();
+        let mut rng = ::rand::rngs::SmallRng::from_seed([0; 16]);
         let mut fract: Vec<Vertex> = Vec::new();
-        let mut last = Vertex {position: [0.0, 0.0], hue: fract.len() as f32 / n as f32};
+        let mut last = Vertex {
+            position: [0.0, 0.0],
+            hue: fract.len() as f32 / n as f32,
+        };
         fract.push(last);
         for _ in 0..n {
             last = self.choose(&mut rng).eval(last);
