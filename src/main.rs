@@ -141,7 +141,7 @@ fn main() {
         }
 
         fpsbuf.push_back(1.0 / delta_s);
-        if fpsbuf.len() > 100 {
+        if fpsbuf.len() > 10 {
             fpsbuf.pop_front();
         }
         state.fps = fpsbuf.iter().sum::<f32>() / fpsbuf.len() as f32;
