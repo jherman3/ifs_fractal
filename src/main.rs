@@ -39,7 +39,7 @@ fn main() {
             .expect("Failed to build program");
 
     let mut closed = false;
-    let mut scale: f32 = 1.0;
+    let mut scale: f32 = 0.1;
     let mut xpos: f32 = 0.0;
     let mut ypos: f32 = 0.0;
 
