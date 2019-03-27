@@ -64,14 +64,15 @@ impl IFS {
         use rand::SeedableRng;
         self.update_sum();
         let mut rng = ::rand::rngs::SmallRng::from_seed([0; 16]);
-
-        v[0] = Vertex {
+        let hue_increment = 1.0 / v.len() as f32;
+        let mut current = Vertex {
             position: [0.0, 0.0],
             hue: 0.0,
         };
-        for i in 1..v.len() {
-            v[i] = self.choose(&mut rng).eval(v[i-1]);
-            v[i].hue = i as f32 / v.len() as f32;
+        for point in v.iter_mut() {
+            current = self.choose(&mut rng).eval(current);
+            current.hue += hue_increment;
+            *point = current;
         }
     }
 }
