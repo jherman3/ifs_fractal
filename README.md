@@ -14,7 +14,7 @@ This program implements a linear transform with 6 parameters `a` through `f`: `x
 ## Building and running
 Just use Cargo: `$ cargo run --release`
 
-## Screenshot
-The default IFS is a Barnsley's Fern.
+## GIF
+The default IFS is a Barnsley's Fern. Here's a GIF of the visualizer:
 
 ![screenshot](https://thumbs.gfycat.com/IncredibleUnequaledAppaloosa-size_restricted.gif)
